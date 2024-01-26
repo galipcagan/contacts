@@ -1,0 +1,60 @@
+﻿@using Web.Shared.DTO
+
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+
+@page "/"
+@page "/contacts"
+<h3>Contact</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>User Name</th>
+            <th>First Name</th>
+            <th>Middle Initial</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Age</th>
+            <th>Phone Number</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in contacts)
+        {
+            <tr>
+                <td>@c.UserName</td>
+                <td>@c.FirstName</td>
+                <td>@c.MiddleInitial</td>
+                <td>@c.LastName</td>
+                <td>@c.Email</td>
+                <td>@c.Age</td>
+                <td>@c.PhoneNumber</td>
+                <td>
+                    <button class="btn btn-primary" @onclick="(() => ShowContact(c.ContactId))">
+                        <i class="oi oi-pencil"></i>
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<button class="btn btn-primary" @onclick=AddNewContact>Add New Contact</button>
+
+@code {
+    private List<ContactDTO> contacts = new List<ContactDTO>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        contacts = await Http.GetFromJsonAsync<List<ContactDTO>>("http://localhost:5150/api/Contacts/GetContacts");
+    }
+
+    void ShowContact(string id)
+    {
+        navigationManager.NavigateTo($"contact/{id}");
+    }
+    void AddNewContact()
+    {
+        navigationManager.NavigateTo($"contact");
+    }
+}

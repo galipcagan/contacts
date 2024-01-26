@@ -1,0 +1,150 @@
+﻿@page "/contact"
+@page "/contact/{id}"
+
+@using Web.Shared.DTO
+
+@inject NavigationManager navigationManager
+@inject HttpClient Http
+
+@if (Id is null)
+{
+    <PageTitle>Add a new contact</PageTitle>
+    <h2>Add a new contact</h2>
+}
+else
+{
+    <PageTitle>Edit</PageTitle>
+    <h2>Edit</h2>
+}
+<h3>Contact Information</h3>
+<EditForm Model="contact" OnSubmit="OnSubmit">
+    <div>
+        <label for="username">User Name</label>
+        <InputText id="username" @bind-Value="contact.UserName" class="form-control" />
+    </div>
+    <div>
+        <label for="firstname">First Name</label>
+        <InputText id="firstname" @bind-Value="contact.FirstName" class="form-control" />
+    </div>
+    <div>
+        <label for="middleinitial">Middle Initial</label>
+        <InputText id="middleinitial" @bind-Value="contact.MiddleInitial" class="form-control" />
+    </div>
+    <div>
+        <label for="lastname">Last Name</label>
+        <InputText id="lastname" @bind-Value="contact.LastName" class="form-control" />
+    </div>
+    <div>
+        <label for="email">Email</label>
+        <InputText id="email" @bind-Value="contact.Email" class="form-control" />
+    </div>
+    <div>
+        <label for="age">Age</label>
+        <InputNumber id="age" @bind-Value="contact.Age" class="form-control" />
+    </div>
+    <div>
+        <label for="phonenumber">Phone Number</label>
+        <InputNumber id="phonenumber" @bind-Value="contact.PhoneNumber" class="form-control" />
+    </div>
+
+    <h3>Adress Information</h3>
+    <div>
+        <label for="streeet">Street</label>
+        <InputText id="street" @bind-Value="contact.Street" class="form-control" />
+    </div>
+    <div>
+        <label for="city">City</label>
+        <InputText id="city" @bind-Value="contact.City" class="form-control" />
+    </div>
+    <div>
+        <label for="state">State</label>
+        <InputText id="state" @bind-Value="contact.State" class="form-control" />
+    </div>
+    <div>
+        <label for="country">Country</label>
+        <InputText id="country" @bind-Value="contact.Country" class="form-control" />
+    </div>
+    <div>
+        <label for="zipcode">Zip Code</label>
+        <InputNumber id="zipcodde" @bind-Value="contact.ZipCode" class="form-control" />
+    </div>
+    <br />
+    <br />
+    <button type="submit" class="btn btn-primary">@btnText</button>
+    <button type="button" class="btn btn-danger" @onclick=DeleteContact>Delete</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+    string btnText = string.Empty;
+
+    ContactDetailDTO? contact = new ContactDetailDTO
+    {
+        UserName = "New user",
+        ContactId = string.Empty,
+        Email = string.Empty,
+        FirstName = string.Empty,
+        LastName = string.Empty,
+        Age = 0,
+        MiddleInitial = string.Empty,
+        PhoneNumber = 1,
+        AddressId = string.Empty,
+        City = string.Empty,
+        Country = string.Empty,
+        State = string.Empty,
+        Street = string.Empty,
+        ZipCode = 0
+    };
+
+    protected override void OnInitialized()
+    {
+        btnText = Id == null ? "Save" : "Update";
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id is not null)
+        {
+            var result = await Http.GetFromJsonAsync<ContactDetailDTO>($"http://localhost:5150/api/Contacts/GetContacts/{Id}");
+            if (result is not null)
+            {
+                contact = result;
+            }
+            else
+            {
+                navigationManager.NavigateTo("contact");
+            }
+        }
+    }
+
+    async Task OnSubmit()
+    {
+        HttpResponseMessage response;
+
+        if (Id is null)
+        {
+            response = await Http.PostAsJsonAsync("http://localhost:5150/api/Contacts/CreateContact", contact);
+
+        }
+        else
+        {
+            response = await Http.PutAsJsonAsync($"http://localhost:5150/api/Contacts/UpdateContact/{Id}", contact);
+
+        }
+        if (response.IsSuccessStatusCode)
+        {
+            navigationManager.NavigateTo("/contacts");
+        }
+    }
+    async Task DeleteContact()
+    {
+        var response = await Http.DeleteAsync($"http://localhost:5150/api/Contacts/DeleteContact/{Id}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            navigationManager.NavigateTo("/contacts");
+        }
+    }
+}
+
